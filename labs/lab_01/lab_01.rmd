@@ -23,7 +23,7 @@ Remember to add any new verbs or concepts to your class reference notebook!
 
 ```{r}
 # Load the tidyverse. If you have not installed the tidyverse already, remove the # from the next line and run it first.  
-# install.packages('tidyverse')
+ install.packages('tidyverse')
 library(tidyverse)
 ```
 
@@ -39,26 +39,57 @@ umd_courses <- read_rds("lab_01.rds")
 
 ## Answer questions
 
-**Q1** Which department has the highest mean (average) number of seats for its classes? You need to show the department with the highest average first. Which one is the most surprising/interesting to you? **A1**
+**Q1** Which department has the highest mean (average) number of seats for its classes? You need to show the department with the highest average first. Which one is the most surprising/interesting to you? **A1** The department with the highest average number of seats is computer, math and natural science. This makes sense to me because UMD has a huge computer science program. It surprises me that business courses are not in the top 10 departments. 
 
 ```{r}
+umd_courses |>
+  group_by(department) |>
+  summarise(
+    mean_seats   = mean(seats),
+    median_seats = median(seats),
+    total_seats  = sum(seats),
+    count_classes = n()
+  ) |>
+  arrange(desc(mean_seats))
 ```
 
-**Q2** Find out the greatest number of times any individual class has been offered in our dataset. Your code must show the greatest number of classes first.
+**Q2** Find out the greatest number of times any individual class has been offered in our dataset. Your code must show the greatest number of classes first. The greatest number of times an individual class has been offered is 29. 
+
 **A2**
 
 ```{r}
+umd_courses |>
+  group_by(id) |>
+  summarise(times_offered = n()) |>
+  arrange(desc(times_offered))
 ```
 
 **Q3** Count the number of courses for each instructor and department. Which instructor has taught the most?
-**A3**
+**A3** The instructor that has taught the most is Jason Kuo, 94 times. 
 
 ```{r}
+umd_courses |>
+  group_by(instructors) |>
+  summarise(num_courses = n()) |>
+  arrange(desc(num_courses))
 ```
 
-**Q4** Given the results for Q3, what would have made it easier to find the answer? You don't have to know *how* to accomplish this; I want you to describe in words what would make the answer easier to see. How confident are you that the answer you got is the right one, and why? **A4**
+**Q4** Given the results for Q3, what would have made it easier to find the answer? You don't have to know *how* to accomplish this; I want you to describe in words what would make the answer easier to see. How confident are you that the answer you got is the right one, and why? **A4** 
+It could make it easier by adding another column to the total dataset next to "instructors" listing how many times they have taught. It could also be useful to eliminate the TBA column that appears at the top of the table, it is distracting and doesn't give the information that I want. 
 
 **Q5** Take one of the questions you listed in the final question of the pre_lab and try to answer it here in code. If you don't know how to fully answer it, write what code you can and describe in words what else you would need to do. If you got an answer, is it interesting? **A5**
 
 ```{r}
+#I used chatgpt to try and figure out and learn how to add another column to the original dataset, this is what it said: 
+
+library(dplyr)
+
+umd_courses <- umd_courses %>%
+  # Count number of courses per instructor
+  group_by(instructors) %>%
+  mutate(classes_taught = n()) %>%   # create new column
+  ungroup()  # ungroup to return to original dataset structure
+
+#This code just added a new column to the dataset! Cool! :) Even though I don't quite understand it. 
+#Kind of interesting that there isn't a ton of data for this category, a lot of the classes taught fall under the NA category. 
 ```
