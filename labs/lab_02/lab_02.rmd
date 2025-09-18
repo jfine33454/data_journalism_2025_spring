@@ -1,0 +1,153 @@
+---
+title: "lab_02"
+author: "Derek Willis"
+date: "2025-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and establish settings
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse. If you have not installed the tidyverse already, remove the # from the next line and run it first.  
+# install.packages('tidyverse')
+library(tidyverse)
+library(lubridate)
+```
+
+## Load Data
+
+Let's keep working with the UMD courses and Maryland campaign expense data we used in the pre_lab.
+
+```{r}
+umd_courses <- read_rds("data/umd_courses.rds")
+maryland_expenses <- read_csv("data/maryland_expenses.csv")
+```
+
+## Answer questions
+
+**Q1.** How many departments have offered the courses with "Climate" in the title and at least one seat? Which department has offered the most? **A1.** There are 32 departments at UMD that offer a course with the term climate in the title. The department of Atmospheric and Oceanic Science offered the most, 14 departments. 
+
+```{r}
+climate_summary <- umd_courses %>%
+  filter(
+    str_detect(title, regex("climate", ignore_case = TRUE)),
+    seats > 0
+  ) %>%
+  group_by(department) %>%
+  summarise(n_courses = n_distinct(id)) %>%
+  arrange(desc(n_courses))
+
+n_departments <- nrow(climate_summary)
+
+top_department <- climate_summary$department[1]
+top_count <- climate_summary$n_courses[1]
+
+list(
+  number_of_departments = n_departments,
+  top_department = top_department,
+  top_department_count = top_count
+)
+
+
+```
+
+**Q2.** Of the departments listed in A1, which one is the most interesting to you, and why? **A2.** The department of Atmospheric and oceanic science because they have 14 different classes with "climate" in the title, which is pretty interesting. 
+
+**Q3** Which departments offered the most courses in the Fall 2024 term? And which departments in that term have at least one syllabus posted? Answer both of those questions and then compare the top five departments - how are they different? Business and management had the most courses in 2024.There are 134 courses that had at least one syllabus in fall 2024, the top 5 are linguistics, american studies, engineering civil, agricultural science and technology, and survey and data science. This is an interesting mix of stem departments and humanities departments. I am surprised that Business and Management is not listed in the top 5 departments with a syllabus, seeing as it has the most courses. 
+
+**A3.**
+
+```{r}
+fall2024_summary <- umd_courses |>
+  filter(term == "202408") |>
+  group_by(department) |>
+  summarise(
+    n_courses = n_distinct(id),
+    has_syllabus = any(syllabus_count > 0)
+  ) |>
+  arrange(desc(n_courses))
+
+top5 <- head(fall2024_summary, 5) #arrows assign a value to a variable 
+
+list(
+  all_departments = fall2024_summary,
+  top5_departments = top5
+)
+unique(umd_courses$department[umd_courses$term == "202408" #this means fall 2024 
+                              & umd_courses$syllabus_count > 0])
+
+
+
+```
+
+**Q4.** Using the Maryland campaign expenses data, change the datatype of the expenditure_date column so that it is a date and not a chr, saving the result as a new dataframe. Then create a new column for the month based on expenditure_date. Then write code that shows total amount spent each month by Wes Moore's committee (you'll need to search the data to find the exact name, and we're not looking in payee_name). Write a sentence describing the pattern of spending over time. **A4.** Over time, the spending ultimately increases with the exception of 9/2021. 
+
+```{r}
+ 
+head(maryland_expenses$expenditure_date)
+library(dplyr)
+library(lubridate)
+
+maryland_expenses2 <- maryland_expenses %>%
+  mutate(
+    expenditure_date = mdy(expenditure_date),
+    month = format(expenditure_date, "%Y-%m")
+  ) %>%
+  filter(grepl("Moore", committee_name, ignore.case = TRUE)) %>%
+  group_by(month) %>%
+  summarise(total_amount = sum(amount, na.rm = TRUE)) %>%
+  arrange(month)
+
+maryland_expenses2
+
+
+
+```
+
+**Q5.** Using case_when(), create a column in the Maryland expenses data called `spending_location` indicating whether each record spent money in Maryland or outside Maryland. For records that are in Maryland, make the new column's value "In-state" and for all others, make it "Out of state". Then write code that shows the total amount of money spent in each category and describe the results. You can do this in one statement or break it up into two statements (saving the new column to your data frame). **A5** The results are that there was a significantly larger amount of spending in state: 77746033 versus out of state:51542714.  
+
+```{r}
+
+library(dplyr)
+
+maryland_expenses2 <- maryland_expenses %>%
+  mutate(spending_location = case_when(
+    grepl("MD|Maryland", address, ignore.case = TRUE) ~ "In-state",
+    TRUE ~ "Out of state"
+  )) %>%
+  group_by(spending_location) %>%
+  summarise(total_amount = sum(amount, na.rm = TRUE)) %>%
+  arrange(desc(total_amount))
+
+maryland_expenses2
+
+
+
+```
+
+**Q6.** Choose your own adventure: using either the UMD courses or campaign expenses data, ask and answer a question that is different than the previous ones. You can use one of the ones you provided in the pre_lab. **A6.** Which payees received the most money from Wes Moore’s committee, and how much? Looking at the data, I can see that Moore Miller for Maryland State was payed the most: 4867000.0 followed by 
+Gusto	671464.1			
+Paragon	376690.4			
+Sapphire Strategies	286020.0			
+Hart Research	268250.0			
+```{r}
+library(dplyr)
+
+# Filter only Wes Moore's committee (adjust string if needed)
+wes_moore_vendors <- maryland_expenses %>%
+  filter(committee_name == "Moore  Wes For Maryland") %>% 
+  group_by(payee_name) %>%
+  summarise(total_amount = sum(amount, na.rm = TRUE)) %>%
+  arrange(desc(total_amount))
+
+# View the top 10 vendors
+head(wes_moore_vendors, 10)
+
+```
