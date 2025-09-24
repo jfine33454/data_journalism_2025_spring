@@ -63,7 +63,7 @@ The second smell we can find in code is **wrong spatial data**. Spatial data mea
 
 We can check to see if any of the zip codes are less than five characters by using [a function called `str_length`](https://stringr.tidyverse.org/reference/str_length.html) inside a filter.
 
-**Task** Run the following codeblock to group by the vendor's zip code and show any that are less than five characters in length. How many zip codes do not have five characters? What do you think explains those records? **Answer** There are 553, this is probably because the zip code column is classfied as a number however, it really isn't a number it's a specific code. 
+**Task** Run the following codeblock to group by the vendor's zip code and show any that are less than five characters in length. How many zip codes do not have five characters? What do you think explains those records? **Answer** There are 553, I am not sure why they are only four characters. Is it because the codes start with 0? 
 
 ```{r}
 payments |>
