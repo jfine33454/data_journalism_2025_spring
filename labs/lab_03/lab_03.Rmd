@@ -1,0 +1,141 @@
+---
+title: "lab_03"
+author: "Derek Willis"
+date: "2025-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## TASK: Load libraries
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse
+library(tidyverse)
+# Load janitor
+install.packages('janitor')
+
+```
+
+## TASK: Load data and clean up the column names
+
+Load the two datasets we worked with in the pre_lab that are in the data folder: the Maryland payments to vendors and Maryland grants and loans AND, using janitor, change the column names so that they are lower-cased and any spaces are replaced with underscores.
+
+```{r}
+payments <- read_csv("data/State_of_Maryland_Payments_Data__FY2008_to_FY2024.csv", guess_max=10)
+
+# Load in the Maryland grants and loan data
+md_grants_loans <- read_csv("data/State_of_Maryland_Grant_and_Loan_Data__FY2009_to_FY2022.csv")
+
+
+```
+
+## Answer questions
+
+Q1: You want to know how much money state agencies have paid to the Prince George's County School system, but to do that you'll need to find all of the variations of how the school system might be listed in the payments data. Look at & search the records in the dataframe to start your search, starting with a broad search and then narrowing it down. Then write code to find rows where the vendor name contains some version of the county's school system. 
+
+HINT: you should use filter() just once, and inside your filter you want to look for the variations one at a time. Think "this version OR that version."
+
+When you have found as many as possible, save the result to a new dataframe called `pg_schools`. How many records did you find?
+
+A1:I found 40 entries with the names "SCHOOL" and "PRINCE GEORGES COUNTY" 
+
+```{r}
+ library(janitor)
+
+cleaned_payments <- payments |>
+  clean_names() |>
+  filter(str_detect(vendor_name, "SCHOOL")) |>
+ filter(str_detect(vendor_name, "PRINCE GEORGES COUNTY"))
+
+#saving it as a new dataframe
+pg_schools <- cleaned_payments 
+
+```
+
+Q2: Using that `pg_schools` dataframe, write code to calculate the total amount of payments to the Prince George's County School system for each fiscal year. Which fiscal year had the largest total amount? Are there any aspects of the results that stand out to you?
+
+A2:The year with the largest total amount is 2021. What stands out to me is that the amount per year seems to increase. 
+
+```{r}
+pg_schools |>
+group_by(fiscal_year) |>
+  summarize(total_amount = sum(amount)) |>
+  arrange(desc(total_amount))
+```
+
+Q3. You're interested in examining the vendors paid for capital projects at the University of Maryland. Search the payments data to find those payments, then write code to produce a list of each vendor and the total amount it received.
+
+Look carefully at that list - what cleaning will it require to ensure that you have only one row per vendor and zip code? Provide at least three examples of vendor names that are similar and should be combined into one. Describe in words how you might clean that data so that any nearly identical vendors would look identical - what would you change and how?
+
+A3. I began with cleaning the dataset and then creating a new dataframe with the data for only capital projects from UMD. This made it a lot easier to search through.Now looking through it, I see a few vendor names that are similar like:
+1. FISHER SCIENTIFIC and FISHER THEATRICAL
+2. WALTERS RELOCATIONS, INC.and WATERS CORPORATION
+3. HORD COPLAN MACHT INC and HORD COPLAN MARCHT/FREELON
+I might clean this data by making the vendor names more consistent. This could mean making the same words all uppercase or lowercase. 
+
+```{r}
+
+
+
+ library(janitor)
+
+umdprojects_payments <- payments |>
+  clean_names() |>
+  filter(str_detect(agency_name, "CAPITAL PROJECTS")) |>
+ filter(str_detect(agency_name, "UNIVERSITY OF MARYLAND"))
+  
+ 
+```
+
+Q4: You want to understand how much state grant money went to stem cell research projects each fiscal year. Search the data to find grants that fit that description. Once you find which column(s) contain the information you want, your code should find just the grants for stem cell research in a single filter. Then calculate the total amount of money for each fiscal year. Write a sentence summarizing how stem cell research funding has changed over time.
+
+A4:When I was searching through the data, I found 58 entries that fit the description of stem cell research. When I look at the data, I do not see a linear pattern. I can see that the most money was allocated in 2023, and the least amount of money being allocated in 2021. Over time, stem cell funding increased, than decreased, than increased again. 
+
+```{r}
+library(janitor)
+cleaned_md_grants_loans <- md_grants_loans |>
+  clean_names()
+# cleaning function
+cleaned_md_grants_loans <- md_grants_loans |>
+  clean_names() |> 
+  rename(source = grantor) |> 
+  mutate(source = str_to_upper(source), grantee = str_to_upper(grantee), description = str_to_upper(description))
+
+# display the cleaned dataset
+cleaned_md_grants_loans
+
+description <- cleaned_md_grants_loans |>
+ filter(description == "STEM CELL RESEARCH GRANT") |>
+
+ group_by(fiscal_year) |>
+  summarize(total_amount = sum(amount)) |>
+  arrange(desc(fiscal_year))
+
+
+```
+
+Q5: Using the Maryland grants and loan data, find records where the zip code is the one where the University of Maryland-College Park is located in and produce a list of grantees from that zip code, along with the total amount they received. Write a paragraph explaining how many grantees are there, what you would need to do to clean the results so that you had one record per grantee and which grantees are most interesting to you? 
+	
+
+A5:I see that there are 15 distinct grantees. In order to further clean the data, I noticed a lot of things. First, I would standardize capitalization. I also noticed that in some of the grant names, there is "and" "AND" "&" I would also make sure all of these are the same in order to only have one record per grantee. Here are the main grantees that stood out: 
+MARYLAND STATE DEPARTMENT OF EDUCATION/TRANSITIONAL EDUCATION SCHOOL READINESS	
+MARYLAND STATE DEPARTMENT OF EDUCATION/STUDENTS WITH DISABILITIES	
+MARYLAND TECHNOLOGY DEVELOPMENT CORPORATION/MARYLAND TECHNOLOGY COMMERCIALIZATION FUND
+DEPARTMENT OF BUSINESS AND ECONOMIC DEVELOPMENT/MD BIOTECHNOLOGY CENTER	
+All of these titles had a few duplicates. It makes sense because College Park is home to UMD, and I am sure these grants are going to fund different things for the university.
+
+```{r}
+cleaned_md_grants_loans |>
+ filter(zip_code == "20742") 
+
+
+
+
+
+```
