@@ -1,19 +1,38 @@
 ---
 title: "Reverse Engineering Group Project"
-output: html_notebook
+Names: Jordan Fine, 
+output: 
+Directions: Use data programming techniques we learn in this class to create a well-commented, well-structured and tightly-edited R markdown data notebook that loads and cleans the data, then faithfully reproduces key facts from the story.
+
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
+crime_change <- data.frame(
+  category = c("Violent crime", "Burglaries", "Car thefts"),
+  change_percent = c(-50, -48, -36)
+)
+arrests_by_year <- data.frame(
+  year = c(2020, 2021, 2022, 2023, 2024, 2025),
+  arrests = c(734, 755, 800, 856, 1071, 1094)
+)
 
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+library(tidyverse)
+install.packages("janitor")
+library(janitor)
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+crime_change <- crime_change |> clean_names()
+arrests_by_year <- arrests_by_year |> clean_names()
+```
+
+
+```{r}
+```
 
