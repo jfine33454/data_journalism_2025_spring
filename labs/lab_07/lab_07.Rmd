@@ -91,9 +91,9 @@ overdose_totals <- overdoses |>group_by(zip) |>summarise(total_calls = n())
 #get 18+ acs data
 acs_md <- get_acs(geography = "zcta",variables = c(totalpop = "B01001_001"),  year = 2019,survey = "acs5") |>select(GEOID, estimate) |> rename(total_population = estimate)
 #join 
-acs_md <- acs_md |> mutate(GEOID = as.character(GEOID))
+acs_md <- acs_md |> mutate(GEOID = as.character(GEOID)) #make it a chr
 overdose_with_pop <- overdose_totals |> left_join(acs_md, by = c("zip" = "GEOID"))
-#convert
+#convert rate 1000
 overdose_with_rates <- overdose_with_pop |>mutate(rate_per_1000 = (total_calls /total_population) * 1000) |>arrange(desc(rate_per_1000)) 
 overdose_with_rates
 
@@ -105,12 +105,23 @@ overdose_with_rates
 
 Looking at the zip code with the lowest rate, I see the main demographics are mostly white, and mostly male. There is also a very small population of only 210 people. I zoomed in closer on the location and discovered that it is a military academy. This makes sense that they have little calls, they have a medical team onsite and a small population which means less calls.
 
-I am not really sure there is a story here but something possible could be that urban and more densly populated areas make more calls than controlled environments. 
+I am not really sure there is a story here but something possible could be that urban and more densely populated areas make more calls than controlled environments. 
 
 **Q5** Go back to your joined dataframe from Q3 and add two more columns representing the minimum and maximum populations based on the estimate and margin of error, then calculate per capita rates for each. Do you get the same two zip codes for the highest and lowest as you did before? Does that give you more or less confidence in your answers to Q3?
 
-**A5**
+**A5**Looking at the top two highest zip codes, I see that they are the same as that in question 3. This makes me more confident in my answer. Looking at the lowest zip codes, they are also the same. The moe must be small. 
 
 ```{r}
+#slightly confused because there is no moe in the joined dataframe but I am using the total population instead. 
+overdose_with_rates <- overdose_with_pop |>
+  mutate(
+    pop_min = total_population,                       
+    pop_max = total_population,                       
+    rate_per_1000_min = (total_calls / pop_max) * 1000,  
+    rate_per_1000_max = (total_calls / pop_min) * 1000
+  )
+arrange(overdose_with_rates, desc(rate_per_1000_max))
+arrange(overdose_with_rates, rate_per_1000_min)
+
 
 ```
