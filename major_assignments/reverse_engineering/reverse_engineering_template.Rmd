@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction 
 
-In this notebook, we are reverse engineering the story, [STORY NAME](STORY URL)
+In this notebook, we are reverse engineering the story, Inside The Political Donation History Of Wealthy Sports Owners (https://fivethirtyeight.com/features/inside-the-political-donation-history-of-wealthy-sports-owners/)
 
 ## Load libraries
 
@@ -37,12 +37,12 @@ library(janitor)
 In this section, describe the source of the data, write a basic data dictionary for data you are working with, and discuss any caveats or issues you discovered working with this data. 
 
 ```{r}
-# Load required data
 
-# Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
-
-# Clean required data and prepare for analysis if needed. 
-
+sports_donations <- read_csv("data/sports-political-donations.csv")
+sports_donations <- sports_donations |>
+  clean_names()
+sports_donations <- sports_donations %>%
+  mutate(amount = as.numeric(gsub("[$,]", "", amount)))
 
 ```
 
@@ -51,13 +51,32 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 1
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: “American professional sports owners have contributed nearly $47 million in federal elections since 2015… $34.2 million (72.9 percent) [went] to Republican campaigns or super PACs… compared to $10.1 million (21.5 percent) to Democrats.”
+
+* **Analysis summary**: I think this quote includes an interesting statistic that provides the main point of the article. There is a big difference in how much money went to republicans vs democrats, this could mean something important or make for an important story. 
+
 
 ```{r}
-# Put code to reverse engineer sentence here
+# First, I am making two new data tables that will show me democratic and republican donors separately. I want to see who is donating the most, to which team, and in which party. 
 
-# Display results of code below this codeblock
+republican_donors <- sports_donations |>
+  filter(party == "Republican")
+
+democrat_donors <- sports_donations |>
+  filter(party == "Democrat")
+#Now I have two more datasets that show me who is donating and which party they are in.I notice that there are significantly more observations in the republican dataset. This makes sense because significantly more people donated. 
+
+#I am now writing code to find out how much money each party received in total, and even the average donation amount, I can also look at how many donors gave to each party.
+
+sports_donations |>
+  group_by(party) |>
+  summarize(
+    total_donated = sum(amount, na.rm = TRUE),
+    average_donation = mean(amount, na.rm = TRUE),
+    number_of_donors = n()
+  ) |>
+  arrange(desc(total_donated))
+#This data is telling me the average donation amounts for each political party, that is pretty cool! The data isn't all that surprising, seeing as Republicans donated the most. I do find it interesting that the number of doners doesn't exactly mirror the total amount donated. 
 
 ```
 
