@@ -1,0 +1,175 @@
+---
+title: "Reverse Engineering Project"
+author: "Alex Taylor, Jordan Fine, Devin Etta"
+date: "Date here"
+output:
+  html_document:
+    theme: cerulean
+    highlight: pygments
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction 
+
+In this notebook, we are reverse engineering the story, [STORY NAME](STORY URL)
+
+## Load libraries
+
+Loading required libraries for this analysis.
+
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+
+```
+
+## Load and Cleaning Data
+
+In this section, describe the source of the data, write a basic data dictionary for data you are working with, and discuss any caveats or issues you discovered working with this data. 
+
+```{r}
+
+sports_donations <- read_csv("sports-political-donations.csv") |>
+  clean_names() |>
+  mutate(
+    amount = as.numeric(gsub("[$,]", "", amount))  # removes $ and commas
+  )
+```
+
+
+## Sentences to Engineer
+In this notebook, we are reverse engineering five sentences from the story.
+
+### Sentence 1 - Jordan
+
+* **Sentence text**: “American professional sports owners have contributed nearly $47 million in federal elections since 2015… $34.2 million (72.9 percent) [went] to Republican campaigns or super PACs… compared to $10.1 million (21.5 percent) to Democrats.”
+
+* **Analysis summary**: I think this quote includes an interesting statistic that provides the main point of the article. There is a big difference in how much money went to republicans vs democrats, this could mean something important or make for an important story. 
+
+
+```{r}
+# Split dataset by party
+republican_donors <- sports_donations |> filter(party == "Republican")
+democrat_donors   <- sports_donations |> filter(party == "Democrat")
+
+# Calculate totals, averages, and counts for each party
+party_summary <- sports_donations |>
+  group_by(party) |>
+  summarize(
+    total_donated = sum(amount, na.rm = TRUE),
+    average_donation = mean(amount, na.rm = TRUE),
+    number_of_donors = n()
+  )
+
+# Calculate percentages of total donations
+total_all <- sum(party_summary$total_donated)
+party_summary <- party_summary |>
+  mutate(percent_of_total = (total_donated / total_all) * 100)
+
+# Arrange from highest to lowest total donated
+party_summary <- party_summary |> arrange(desc(total_donated))
+
+party_summary
+
+ 
+
+```
+
+### Sentence 2 - Alex
+
+* **Sentence text**: Overall, 51.7 percent of all contributions by WNBA owners went to Democrats, with 42.3 percent going to Republicans.
+
+* **Analysis summary**: I was not able to confirm these results. In my analysis, 76.6% of WNBA contributions went to Democrats, while 19.7% went to Republicans. At first, I thought this was because an owner owned a team in a league other than the WNBA, but after this ended up not being the case. 
+
+```{r}
+# Put code to reverse engineer sentence here
+
+# Filter to only focus on WNBA players, then see how many contributions were made to each party
+WNBA_Contribs <- Donations |>
+  filter(League == "WNBA") |>
+  group_by(Party) |>
+  summarise(numb_contrib = n())
+
+# Find the percentage of contributions each party got
+WNBA_Contribs <- WNBA_Contribs |>
+  mutate(
+    pct_contrib = numb_contrib / sum(numb_contrib) * 100
+  )
+
+# Display results of code below this codeblock
+WNBA_Contribs
+
+```
+
+### Sentence 3 - Devin (Did 5th sentance in document)
+
+* **Sentence text**: “Forty owners account for more than $40 million — more than 85 percent of all contributions. And looking specifically at these big spenders, it’s clear where their allegiances lie: 77.7 percent of that $40 million went to Republican causes or candidates, with 18.8 percent going to Democrats.” 
+* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+
+```{r}
+# Put code to reverse engineer sentence here
+
+#The data needs to be clean like this because the amount data set needs to be set to numeric
+Clean_Donations <- Donations |>
+  clean_names() |>
+  mutate(amount = as.numeric(gsub("[$,]","",amount))) 
+
+Clean_Donations
+
+
+
+#top 40 donations code  
+top_40donations <- Clean_Donations |>
+  group_by(owner) |>
+  summarize(total_amount = sum(amount))|>
+  top_n(40,total_amount) |>
+  summarize(total_from40 = sum(total_amount))
+
+top_40donations
+   #calculate the total contributions       
+ total_donation_amount <- sum(Clean_Donations$amount)
+   
+ #percentage 
+ percent_top40 <- (top_40donations$total_from40/ total_donation_amount) * 100
+
+# Display results of code below this codeblock
+  
+ #the percent of the top 40 owners 
+ percent_top40
+
+```
+
+
+### Sentence 4
+
+* **Sentence text**: [Paste in sentence to engineer here]
+* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+
+```{r}
+# Put code to reverse engineer sentence here
+
+# Display results of code below this codeblock
+
+```
+
+### Sentence 5
+
+* **Sentence text**: [Paste in sentence to engineer here]
+* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+
+```{r}
+# Put code to reverse engineer sentence here
+
+# Display results of code below this codeblock
+
+```
+
+-30-
