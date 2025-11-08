@@ -37,7 +37,7 @@ In this section, describe the source of the data, write a basic data dictionary 
 
 ```{r}
 
-sports_donations <- read_csv("sports-political-donations.csv") |>
+Donations <- read_csv("sports-political-donations.csv") |>
   clean_names() |>
   mutate(
     amount = as.numeric(gsub("[$,]", "", amount))  # removes $ and commas
@@ -94,8 +94,8 @@ party_summary
 
 # Filter to only focus on WNBA players, then see how many contributions were made to each party
 WNBA_Contribs <- Donations |>
-  filter(League == "WNBA") |>
-  group_by(Party) |>
+  filter(league == "WNBA") |>
+  group_by(party) |>
   summarise(numb_contrib = n())
 
 # Find the percentage of contributions each party got
@@ -162,14 +162,26 @@ top_40donations
 
 ### Sentence 5
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: “Forty owners account for more than $40 million — more than 85 percent of all contributions. And looking specifically at these big spenders, it’s clear where their allegiances lie: 77.7 percent of that $40 million went to Republican causes or candidates, with 18.8 percent going to Democrats.” 
+* **Analysis summary**:This paragraph displays a statistic that slices the data and looks at the top donors. The github data from the article helps to list the owners and their sport teams that have a concentrated spending power. The analysis could be easy by just filtering the minimum spending amount to only display those donors. Either the data can be grouped by donations, or just the owners. 
+
+
+
 
 ```{r}
-# Put code to reverse engineer sentence here
-
-# Display results of code below this codeblock
-
+owner_totals <- sports_donations |> 
+  group_by(owner) |> 
+  summarize(total_donated = sum(amount, na.rm = TRUE)) |> 
+  arrange(desc(total_donated))
+top40_owners <- owner_totals |> 
+  slice_max(order_by = total_donated, n = 40)
+sports_donations |> 
+  semi_join(top40_owners, by = "owner") |> 
+  group_by(party) |> 
+  summarize(
+    total_donated = sum(amount, na.rm = TRUE),
+    percent = total_donated / sum(total_donated) * 100
+  )
 ```
 
 -30-
