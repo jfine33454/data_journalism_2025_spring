@@ -97,7 +97,12 @@ When you're done, rename the columns so they make sense, then make sure the date
 
 Finally, tell me what questions you could ask of this data if you had all of his press releases. Be creative.
 
-**A3**
+**A3** 
+1. When are certain types of press releases released, (holidays, time of year, or major crimes?)
+2. Do press releases increase during election years?
+3. What months have the most press releases?
+4. How often does "health" appear in the title of press releases? or Doctors? 
+
 
 ```{r}
 library(rvest)
